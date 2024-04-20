@@ -1,17 +1,27 @@
 ﻿#include <iostream>
 using namespace std;
-
+int MAX_SIZE = 30;
+class Error {
+	string message;
+public:
+	Error(string s) {
+		message = s;
+	}
+	void what() {
+		cout << message << endl;
+	}
+};
 struct Node {
 	int data;
 	Node* next_node = nullptr;
 	Node* prev_node = nullptr;
 };
-
 class List {
 	int size;
 	Node* head_node;
 	Node* tail_node;
 public:
+	List();
 	List(int size);
 	List(int size, int data);
 	List(const List& list);
@@ -30,17 +40,17 @@ public:
 	friend istream& operator >> (istream& is, const List& list);
 	friend ostream& operator << (ostream& os, const List& list);
 };
-
-List::List(int size, int data) {
+List::List() {
+	this->size = 0;
+}
+List::List(int size) {
 	this->size = size;
 	if (size > 0) {
 		Node* node = new Node;
-		node->data = data;
 		this->head_node = node;
 		this->tail_node = node;
 		for (int i = 1; i < size; i++) {
 			Node* new_node = new Node;
-			new_node->data = data;
 			tail_node->next_node = new_node;
 			new_node->prev_node = tail_node;
 			tail_node = new_node;
@@ -52,14 +62,17 @@ List::List(int size, int data) {
 		this->tail_node = nullptr;
 	}
 }
-List::List(int size) {
+List::List(int size, int data) {
+	if (size > 30 || size == 0) throw Error("Размер введён неправильно"); 
 	this->size = size;
 	if (size > 0) {
 		Node* node = new Node;
+		node->data = data;
 		this->head_node = node;
 		this->tail_node = node;
 		for (int i = 1; i < size; i++) {
 			Node* new_node = new Node;
+			new_node->data = data;
 			tail_node->next_node = new_node;
 			new_node->prev_node = tail_node;
 			tail_node = new_node;
@@ -91,6 +104,7 @@ List::~List() {
 	this->head_node = nullptr;
 }
 void List::push_back(int data) {
+	if (size == MAX_SIZE) throw Error("Добавление элементов невозможно");
 	Node* new_node = new Node;
 	new_node->data = data;
 	new_node->next_node = nullptr;
@@ -106,6 +120,7 @@ void List::push_back(int data) {
 	this->size++;
 }
 void List::push_front(int data) {
+	if (size == MAX_SIZE) throw Error("Добавление элементов невозможно");
 	Node* new_node = new Node;
 	new_node->data = data;
 	if (this->head_node == nullptr) {
@@ -170,17 +185,14 @@ List& List::operator = (const List& list) {
 	return *this;
 }
 int& List::operator [] (int index) {
-	if (index < this->size && index >= 0) {
-		Node* current_node = this->head_node;
-		for (int i = 1; i < index; i++) {
-			current_node = current_node->next_node;
-		}
-		return current_node->data;
+	if (index < 0) throw Error("Индекс введён неправильно");                                 //2
+	if (index >= size) throw Error("Индекс введён неправильно");                                 //3
+	Node* current_node = this->head_node;
+	for (int i = 1; i < index; i++) {
+		current_node = current_node->next_node;
 	}
-	else {
-		cout << " Index out of range " << endl;
-		exit(0);
-	}
+	return current_node->data;
+
 }
 int List::operator() (){
 	return this->size;
@@ -198,6 +210,7 @@ List List::operator * (List& list) {
 	return temp;
 }
 ostream& operator << (ostream& os, const List& list) {
+	if (list.size == 0) { cout << "Empty list" << endl; return os; }
 	os << endl << " Вывод элементов списка " << endl;
 	Node* current_node = list.head_node;
 	while (current_node != nullptr) {
@@ -217,27 +230,15 @@ istream& operator >> (istream& is, const List& list) {
 	cout << endl << " Ввод элементов завершён " << endl;
 	return is;
 }
-
 int main() {
 	system("chcp 1251 > Null");
 	srand(time(NULL));
-	const int size = 6;
-	List list1(10, 7);
-	List list2(list1);
-	List list3(6);
-	cout << endl << list1 << endl;
-	for (int i = 0; i < list1(); i++) {
-		list1[i] = rand() % 100;
+	try {
+		List l1(100, 6);
 	}
-	cout << endl << list1 << endl;
-	cout << endl << list2 << endl;
-	cin >> list3;
-	list2.push_back(17);
-	list2.pop_front();
-	cout << endl << list2 << endl;
-	cout << endl << list3 << endl;
-	List list4 = list3 * list2;
-	cout << endl << list4 << endl;
+	catch (Error e) {
+		e.what();
+	}
 		return 0;
 }
 
